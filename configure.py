@@ -2,6 +2,11 @@ import configparser
 import numpy as np
 
 # Load the ZED camera calibration file using the camera's serial number
+# For future reference, you can download the calibration file for your ZED camera from:
+# This page allow you to download your ZED calibration file.
+# To do that, simply call this page with the ZED serial number.
+# Like this : https://www.stereolabs.com/developers/calib?SN=YOUR_ZED_SERIAL_NUMBER
+
 config = configparser.ConfigParser()
 config.read(r'/Users/joshuadayal/Downloads/SN1010.conf')
 
