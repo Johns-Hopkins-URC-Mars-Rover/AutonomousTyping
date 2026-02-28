@@ -4,7 +4,7 @@ import math
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 real_key_width_mm = 15.0        # Physical width of a keyboard key in millimetres
-input_string = "joshua"         # The string whose keys we want to locate and measure
+input_string = "joshua"         # The launch key string whose keys we want to locate
 print("Input string:", input_string)
 
 target_keys = list(input_string) # Individual characters to detect
