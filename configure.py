@@ -6,9 +6,10 @@ import numpy as np
 # This page allow you to download your ZED calibration file.
 # To do that, simply call this page with the ZED serial number.
 # Like this : https://www.stereolabs.com/developers/calib?SN=YOUR_ZED_SERIAL_NUMBER
+# Serial number for our ZED camera: SN30980871
 
 config = configparser.ConfigParser()
-config.read(r'/Users/joshuadayal/Downloads/SN1010.conf')
+config.read(r'SN30980871.conf')
 
 
 def CameraMatrix():
