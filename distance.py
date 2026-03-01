@@ -20,13 +20,13 @@ def get_center(box):
     return ((x1 + x2) / 2, (y1 + y2) / 2)
 
 
-def get_distance_data(input_string, image_path, model_path=r'best.pt'):
+def DistanceData(input_string, image, model_path=r'best.pt'):
     """
     Detects keyboard keys in an image and measures distances between them.
 
     Args:
         input_string: The string whose keys you want to locate and measure.
-        image_path:   Path to the input image file.
+        image:   The loaded OpenCV image object.
         model_path:   Path to the YOLO model weights file.
 
     Returns:
@@ -41,10 +41,9 @@ def get_distance_data(input_string, image_path, model_path=r'best.pt'):
 
     # ── Model & Image Setup ────────────────────────────────────────────────────
     model = YOLO(model_path)
-    image = cv2.imread(image_path)
 
     if image is None:
-        raise FileNotFoundError(f"Could not load '{image_path}'. Check the file path.")
+        raise FileNotFoundError(f"Could not load image. Check the image object.")
 
     results = model.predict(image, conf=0.5, verbose=False, show=False)
 
@@ -160,5 +159,6 @@ def get_distance_data(input_string, image_path, model_path=r'best.pt'):
 
 if __name__ == "__main__":
     test_path = r'/Users/joshuadayal/Documents/Python/detectron/myvenv/test.jpg'
-    data = get_distance_data("joshua", test_path)
+    image = cv2.imread(test_path)
+    data = DistanceData("joshua", image)
     print(data)
