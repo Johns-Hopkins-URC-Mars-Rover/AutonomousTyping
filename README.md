@@ -224,9 +224,9 @@ distance_mm = distance_pixels × scale_factor
 
 This project is for educational and research purposes.
 
-## Author
+## Authors
 
-Joshua Dayal
+Joshua Dayal, Mariam Husain, Clara Fang
 
 ---
 
