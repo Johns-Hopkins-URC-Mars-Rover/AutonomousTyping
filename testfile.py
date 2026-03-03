@@ -166,8 +166,8 @@ image = capture_frame(cap)
 # ── Initial Pose Estimation ────────────────────────────────────────────────────
 corners, ids, rejected = detector.detectMarkers(image)
 rvecs, tvecs = estimatePoseSingleMarkers(corners, marker_size, camera_matrix, dist_coeffs)
+# FIX [TODO]: Loop until we get a valid detection, otherwise we have no reference for alignment
 
-rotation_matrix, _ = cv2.Rodrigues(rvecs[0])
 x, y, z = centroid(tvecs).flatten()
 
 # ── Alignment Loop ─────────────────────────────────────────────────────────────
