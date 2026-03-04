@@ -70,7 +70,7 @@ def main(args=None):
     Initializes ROS 2 communications, creates the subscriber instance, and 
     spins the node indefinitely so it continuously listens for incoming data.
     """
-        rclpy.init(args=args) # Initialize the ROS 2 Python client library
+    rclpy.init(args=args) # Initialize the ROS 2 Python client library
     movement_vector_subscriber = MovementVectorSubscriber() # Create an instance of the MovementVectorSubscriber node
     rclpy.spin(movement_vector_subscriber) # Keep the node running to allow it to receive messages
     movement_vector_subscriber.destroy_node() # Clean up the node when done
