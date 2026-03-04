@@ -3,7 +3,7 @@
 An intelligent robotic system that autonomously types on a keyboard by detecting keys using computer vision and commanding robot movements to press them in sequence.
 
 ## Project Status
-Work in proress. Esitmated Comletion: April 2026.
+Work in progress. Esitmated Completion: April 2026.
 ## Overview
 
 This project combines multiple computer vision and robotics techniques to enable a robot to type predefined text on a standard keyboard:
