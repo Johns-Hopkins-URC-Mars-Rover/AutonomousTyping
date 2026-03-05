@@ -226,3 +226,7 @@ for movement in data:
     move(x, y, z)       # Translate to next key
     move(0, 0, -0.035)  # Press key down 35 mm
     move(0, 0,  0.035)  # Lift back up 35 mm
+
+vector_publisher.destroy_node()  # Clean up ROS2 node
+rclpy.shutdown()                 # Shutdown ROS2 client library 
+print("Typing sequence complete. Shutting down.")
