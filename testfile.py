@@ -3,11 +3,17 @@ import numpy as np
 from configure import CameraMatrix, DistortionCoefficients
 from distance import DistanceData
 import pythonbible as bible
+import rclpy # ROS2 client library for Python, works on ROS2 Humble and later. Test on Linux
+from movement_vector_publisher import MovementVectorPublisher
 
 # ── Startup ────────────────────────────────────────────────────────────────────
 print(bible.get_verse_text(1001001), "\n")
 launch_key = input("Enter the launch key string: ")
 
+# Initialize ROS2 node and publisher
+rclpy.init()
+# Create a publisher for movement vectors
+vector_publisher = MovementVectorPublisher()
 
 # ── ZED Camera Setup ───────────────────────────────────────────────────────────
 
@@ -147,7 +153,13 @@ def move(x, y, z):
         y: Displacement in meters along the y-axis (vertical).
         z: Displacement in meters along the z-axis (depth / press direction).
     """
-    pass
+    # Call the Publisher to publish the movement vector to ROS2 topic
+    vector_publisher.send_movement_vector(x, y, z)
+    # Lightly delay to ensure the message is sent before the next command
+    rclpy.spin_once(vector_publisher, timeout_sec=0.1)  # Ensure the message is sent immediately
+
+    # [TODO]: Create a subsricber that listens for a confirmation message from the robot after each move
+    #       This way we can ensure the robot has completed the move before sending the next command
 
 
 # ── Configuration ──────────────────────────────────────────────────────────────
@@ -165,8 +177,12 @@ image = capture_frame(cap)
 
 # ── Initial Pose Estimation ────────────────────────────────────────────────────
 corners, ids, rejected = detector.detectMarkers(image)
+# FIXED [TODO]: Loop until we get a valid detection, otherwise we have no reference for alignment
+while len(corners) == 0:
+    print("No markers detected, retrying...")
+    image = capture_frame(cap)
+    corners, ids, rejected = detector.detectMarkers(image)
 rvecs, tvecs = estimatePoseSingleMarkers(corners, marker_size, camera_matrix, dist_coeffs)
-# FIX [TODO]: Loop until we get a valid detection, otherwise we have no reference for alignment
 
 x, y, z = centroid(tvecs).flatten()
 
