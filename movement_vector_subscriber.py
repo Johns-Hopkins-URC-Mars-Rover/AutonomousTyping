@@ -10,6 +10,7 @@ controllers for a robotic arm or rover chassis) should be implemented.
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import String
 
 class MovementVectorSubscriber(Node):
     """
@@ -37,7 +38,13 @@ class MovementVectorSubscriber(Node):
             self.movement_vector_callback,
             10
         )
-        
+        self.subscription = self.create_subscription(
+            String,
+            'Completion',
+            self.completion_callback,
+            10
+        )
+
         # Prevent the Python garbage collector from destroying the subscription 
         # by explicitly referencing it (a standard ROS 2 Python convention).
         self.subscription
@@ -62,7 +69,15 @@ class MovementVectorSubscriber(Node):
         # 3. Send those commands to the physical robot joints/wheels.
         # -------------------------------------------------------------------
 
+    def completion_callback(self, msg: String):
+        """Callback function triggered when a completion message is received.
 
+        Args:
+            msg (std_msgs.msg.String): The incoming completion message.
+        """
+        self.get_logger().info(f'Received Completion Message: {msg.data}')
+        return True
+        
 def main(args=None):
     """
     The main entry point for the node.
