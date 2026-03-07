@@ -9,6 +9,7 @@ subscriber node to command physical hardware, such as a robotic arm chassis.
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Vector3
+from std_msgs.msg import String
 
 class MovementVectorPublisher(Node):
     """
@@ -31,6 +32,7 @@ class MovementVectorPublisher(Node):
         # A queue size of 10 ensures up to 10 messages are buffered if the 
         # subscriber is temporarily unable to process them immediately.
         self.publisher_ = self.create_publisher(Vector3, 'movement_vector', 10)
+        self.publisher_completion = self.create_publisher(String, 'Completion', 10)
 
     def send_movement_vector(self, x: float, y: float, z: float):
         """
@@ -55,6 +57,26 @@ class MovementVectorPublisher(Node):
         
         # Log the published data to the console for debugging and tracking
         self.get_logger().info(f'Publishing Vectors -> X: {msg.x:.2f}, Y: {msg.y:.2f}, Z: {msg.z:.2f}')
+    
+    def send_completion_message(self, message: str):
+        """
+        Constructs and publishes a String message indicating task completion.
+        
+        Args:
+            message (str): A human-readable string indicating the status or 
+                           completion of a task (e.g., "Task Completed").
+        """
+        # Initialize an empty String message object
+        msg = String()
+        
+        # Assign the input string to the message data property
+        msg.data = message
+        
+        # Broadcast the completion message to the ROS 2 network
+        self.publisher_completion.publish(msg)
+        
+        # Log the published completion message to the console for debugging
+        self.get_logger().info(f'Publishing Completion Message -> {msg.data}')
 
 
 def main(args=None):
