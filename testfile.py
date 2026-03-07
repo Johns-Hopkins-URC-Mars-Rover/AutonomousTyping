@@ -5,6 +5,7 @@ from distance import DistanceData
 import pythonbible as bible
 import rclpy # ROS2 client library for Python, works on ROS2 Humble and later. Test on Linux
 from movement_vector_publisher import MovementVectorPublisher
+from movement_vector_subscriber import MovementVectorSubscriber
 
 # ── Startup ────────────────────────────────────────────────────────────────────
 print(bible.get_verse_text(1001001), "\n")
