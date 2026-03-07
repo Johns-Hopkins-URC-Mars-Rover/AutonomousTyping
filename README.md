@@ -1,30 +1,40 @@
 # Autonomous Typing System
 
-An intelligent robotic system that autonomously types on a keyboard by detecting keys using computer vision and commanding robot movements to press them in sequence.
+An intelligent robotic system that autonomously types on a keyboard by detecting keys using computer vision and commanding robot movements to press them in sequence via ROS 2 communication.
 
 ## Project Status
-Work in progress. Esitmated Completion: April 2026.
+Work in progress. Estimated Completion: April 2026.
 ## Overview
 
-This project combines multiple computer vision and robotics techniques to enable a robot to type predefined text on a standard keyboard:
+This project combines multiple computer vision and robotics techniques to enable a robot to type predefined text on a standard keyboard using ROS 2 for communication:
 
 - **ArUco Marker Detection**: Estimates the 3D pose of the robot end-effector using ArUco markers
 - **YOLO-based Key Detection**: Identifies individual keyboard keys using a trained YOLOv8 model
 - **Distance Measurement**: Calculates inter-key distances for precise movement planning
 - **Camera Calibration**: Uses ZED stereo camera calibration data for accurate pose estimation
+- **ROS 2 Communication**: Publishes movement vectors to control the robot via ROS 2 topics
 - **Motion Planning**: Generates movement commands to navigate between keys and press them
 
 ## Project Structure
 
 ```
-AutonomousTyping/
-├── detection.py          # Main detection pipeline and pose estimation
-├── distance.py           # Key detection and distance measurement
-├── configure.py          # Camera calibration data loader
-├── requirements.txt      # Python dependencies
-├── best.pt              # Trained YOLOv8 model weights for key detection
-├── SN30980871.conf      # ZED camera calibration file
-└── README.md            # This file
+autonomous_typing/
+├── package.xml                    # ROS 2 package configuration
+├── setup.py                       # Python package setup
+├── autonomous_typing/
+│   ├── __init__.py
+│   ├── movement_vector_publisher.py   # ROS 2 publisher for movement vectors
+│   ├── movement_vector_subscriber.py  # ROS 2 subscriber for robot control
+│   └── AutonomousTyping/
+│       ├── detection.py            # Main detection pipeline and pose estimation
+│       ├── distance.py             # Key detection and distance measurement
+│       ├── configure.py            # Camera calibration data loader
+│       ├── camera.py               # Camera capture utility
+│       ├── requirements.txt        # Python dependencies
+│       ├── best.pt                 # Trained YOLOv8 model weights for key detection
+│       ├── SN30980871.conf         # ZED camera calibration file
+│       ├── testfile.py             # Test script
+│       └── README.md               # This file
 ```
 
 ## Components
@@ -61,8 +71,29 @@ Key functions:
 - Constructs 3×3 intrinsic camera matrix
 - Extracts lens distortion coefficients in OpenCV format
 
+## ROS 2 Nodes
+
+### `movement_vector_publisher.py`
+**ROS 2 publisher node** that:
+- Publishes 3D movement vectors to the 'movement_vector' topic
+- Integrates with the detection pipeline to send commands for robot motion
+- Uses geometry_msgs/Vector3 messages for X, Y, Z displacements
+
+### `movement_vector_subscriber.py`
+**ROS 2 subscriber node** that:
+- Subscribes to the 'movement_vector' topic for incoming movement commands
+- Subscribes to the 'Completion' topic for typing sequence status
+- Provides a callback framework for implementing hardware control logic (e.g., PID controllers for robotic arms)
+
 ## Requirements
 
+### ROS 2 Dependencies
+- **ROS 2 Humble** or compatible distribution
+- **rclpy**: ROS 2 Python client library
+- **geometry_msgs**: Standard ROS 2 geometry messages
+- **std_msgs**: Standard ROS 2 messages
+
+### Python Dependencies
 Install dependencies with:
 ```bash
 pip install -r requirements.txt
@@ -77,18 +108,31 @@ Dependencies:
 
 ## Setup
 
-### 1. Camera Calibration
+### 1. ROS 2 Environment
+Ensure ROS 2 is installed and sourced:
+```bash
+source /opt/ros/humble/setup.bash
+```
+
+Build the ROS 2 package:
+```bash
+cd /path/to/ros2_ws
+colcon build --packages-select autonomous_typing
+source install/setup.bash
+```
+
+### 2. Camera Calibration
 The project uses a ZED camera (serial: SN30980871). To use with a different camera:
 1. Download your ZED calibration file from: https://www.stereolabs.com/developers/calib?SN=YOUR_SERIAL_NUMBER
 2. Replace `SN30980871.conf` with your calibration file
 3. Update the serial number reference in documentation
 
-### 2. Model Weights
+### 3. Model Weights
 The project requires a trained YOLOv8 model for keyboard key detection:
 - Place `best.pt` in the project directory (or update `model_path` in `distance.py`)
 - Model should be trained to detect individual keyboard keys with confidence > 0.5
 
-### 3. Image Paths
+### 4. Image Paths
 Update image paths in `detection.py` to match your setup:
 ```python
 image = cv2.imread(r'/path/to/your/keyboard.jpg')
@@ -96,27 +140,42 @@ image = cv2.imread(r'/path/to/your/keyboard.jpg')
 
 ## Usage
 
+### ROS 2 Nodes
+Run the movement vector publisher:
+```bash
+ros2 run autonomous_typing movement_vector_publisher
+```
+
+Run the movement vector subscriber:
+```bash
+ros2 run autonomous_typing movement_vector_subscriber
+```
+
 ### Basic Usage
 ```python
 python detection.py
 ```
 
-This prompts for a launch key string and executes the typing sequence on the keyboard.
+This prompts for a launch key string and executes the typing sequence on the keyboard by publishing movement vectors via ROS 2.
 
 ### Robot Integration
-Replace the stub `move()` function in `detection.py` with actual robot control commands:
+Replace the stub `move()` function in `detection.py` with actual robot control commands that publish to ROS 2 topics:
 ```python
 def move(x, y, z):
     """
-    Command robot end-effector motion.
+    Command robot end-effector motion via ROS 2.
     
     Args:
         x: Displacement in meters (horizontal)
         y: Displacement in meters (vertical)
         z: Displacement in meters (depth/press)
     """
-    # Replace with your robot API
-    robot.move_relative(x, y, z)
+    # Publish movement vector to ROS 2 topic
+    msg = Vector3()
+    msg.x = x
+    msg.y = y
+    msg.z = z
+    publisher.publish(msg)
 ```
 
 ### Enabling Closed-Loop Alignment
@@ -145,6 +204,7 @@ while (not aligned(x, y, z)):
    - Load camera calibration parameters
    - Load pre-trained YOLO model
    - Read input string and keyboard image
+   - Initialize ROS 2 publisher for movement vectors
 
 2. **Marker Detection**
    - Detect ArUco markers in the image
@@ -159,9 +219,13 @@ while (not aligned(x, y, z)):
 
 4. **Motion Execution**
    - For each character in input string:
-     - Move horizontally/vertically to key center
-     - Press down (~35 mm)
-     - Release (lift back up)
+     - Publish movement vector to ROS 2 topic for horizontal/vertical positioning
+     - Publish press command (negative Z)
+     - Publish release command (positive Z)
+
+5. **ROS 2 Communication**
+   - Subscriber node receives movement vectors
+   - Translates vectors into hardware commands (PID controllers, motor drivers)
 
 ## Coordinate System
 
@@ -170,6 +234,11 @@ while (not aligned(x, y, z)):
 - **Z-axis**: Depth (toward/away camera), positive = away from camera
   - Negative Z = press down
   - Positive Z = lift up
+
+## ROS 2 Topics
+
+- **movement_vector** (geometry_msgs/Vector3): Publishes 3D displacement commands (x, y, z in meters)
+- **Completion** (std_msgs/String): Signals completion of typing sequence or individual key presses
 
 ## Technical Details
 
@@ -194,7 +263,8 @@ distance_mm = distance_pixels × scale_factor
 - [ ] Full 6-DOF trajectory planning with orientation control
 - [ ] Adaptive thresholds based on image quality
 - [ ] Keyboard layout database for missing key interpolation
-- [ ] Robot control integration (UR, ABB, etc.)
+- [x] ROS 2 integration for robot control communication
+- [ ] Integration with specific robot APIs (UR, ABB, etc.)
 - [ ] Error recovery and retry mechanisms
 - [ ] Performance benchmarking and optimization
 
