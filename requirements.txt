@@ -3,3 +3,4 @@ ultralytics
 numpy
 configparser
 pythonbible
+rclpy
