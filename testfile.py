@@ -164,7 +164,7 @@ def move(x, y, z):
 
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-marker_size   = 0.02
+marker_size   = 0.02 # Marker size in meters (20 mm)
 camera_matrix = CameraMatrix()
 dist_coeffs   = DistortionCoefficients()
 
