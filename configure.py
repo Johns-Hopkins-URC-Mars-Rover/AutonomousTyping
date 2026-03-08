@@ -7,6 +7,10 @@ import numpy as np
 # To do that, simply call this page with the ZED serial number.
 # Like this : https://www.stereolabs.com/developers/calib?SN=YOUR_ZED_SERIAL_NUMBER
 # Serial number for our ZED camera: SN30980871
+# Resolution: 1280x720
+# Coordinate System: Right-handed, Y-up
+# Axes: X=Right, Y=Up, Z=Forward
+# Units: meters
 
 config = configparser.ConfigParser()
 config.read(r'/Users/joshuadayal/Documents/Python/detectron/myvenv/AutonomousTyping/SN30980871.conf')
