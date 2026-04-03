@@ -13,7 +13,7 @@ import numpy as np
 # Units: meters
 
 config = configparser.ConfigParser()
-config.read(r'/Users/joshuadayal/Documents/Python/detectron/myvenv/AutonomousTyping/SN30980871.conf')
+config.read(r'SN30980871.conf')
 
 
 def CameraMatrix():

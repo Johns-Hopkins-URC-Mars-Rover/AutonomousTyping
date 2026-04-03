@@ -114,7 +114,7 @@ dist_coeffs = DistortionCoefficients()
 # ── ArUco Detection ────────────────────────────────────────────────────────────
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
 parameters = cv2.aruco.DetectorParameters()
-image = cv2.imread(r'/Users/joshuadayal/Downloads/keyboard.jpg')
+image = cv2.imread(r'/keyboard.jpg')
 
 detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
 corners, ids, rejected = detector.detectMarkers(image)
@@ -146,7 +146,7 @@ x, y, z = centroid(tvecs).flatten()
 # string. Each entry gives the x/y offset from the previous key to the next.
 data = DistanceData(
     input_string=launch_key,
-    image=cv2.imread(r'/Users/joshuadayal/Downloads/keyboard.jpg')
+    image=cv2.imread(r'keyboard.jpg')
 )
 
 for movement in data:
