@@ -105,7 +105,7 @@ dist_coeffs = DistortionCoefficients()
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
 parameters = cv2.aruco.DetectorParameters()
-image = cv2.imread(r'/keyboard.jpg')
+image = cv2.imread(r'keyboard.jpg')
 
 detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
 corners, ids, rejected = detector.detectMarkers(image)
