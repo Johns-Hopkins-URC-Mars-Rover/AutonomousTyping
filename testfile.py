@@ -3,20 +3,16 @@ import numpy as np
 from configure import CameraMatrix, DistortionCoefficients
 from distance import DistanceData
 import pythonbible as bible
-import rclpy # ROS2 client library for Python, works on ROS2 Humble and later. Test on Linux
+import rclpy
 from movement_vector_publisher import MovementVectorPublisher
 from movement_vector_subscriber import MovementVectorSubscriber
 
-# ── Startup ────────────────────────────────────────────────────────────────────
 print(bible.get_verse_text(1001001), "\n")
 launch_key = input("Enter the launch key string: ")
 
-# Initialize ROS2 node and publisher
 rclpy.init()
-# Create a publisher for movement vectors
 vector_publisher = MovementVectorPublisher()
 
-# ── ZED Camera Setup ───────────────────────────────────────────────────────────
 
 def init_camera(port = 0):
     """
@@ -31,7 +27,7 @@ def init_camera(port = 0):
     Raises:
         RuntimeError: If the camera cannot be opened.
     """
-    cap = cv2.VideoCapture(port)  # Change port if ZED is not on device 0
+    cap = cv2.VideoCapture(port)
     if not cap.isOpened():
         raise RuntimeError("Could not open ZED camera. Check USB connection.")
     return cap
@@ -57,7 +53,6 @@ def capture_frame(cap):
     if not ret:
         raise RuntimeError("Failed to capture frame from ZED camera.")
 
-    # ZED side-by-side format: left half = left camera
     width = frame.shape[1] // 2
     left_frame = frame[:, :width]
 
@@ -75,7 +70,6 @@ def release_camera(cap):
     cv2.destroyAllWindows()
 
 
-# ── Pose Estimation ────────────────────────────────────────────────────────────
 
 def estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs):
     """
@@ -154,16 +148,12 @@ def move(x, y, z):
         y: Displacement in meters along the y-axis (vertical).
         z: Displacement in meters along the z-axis (depth / press direction).
     """
-    # Call the Publisher to publish the movement vector to ROS2 topic
     vector_publisher.send_movement_vector(x, y, z)
-    # Lightly delay to ensure the message is sent before the next command
-    rclpy.spin_once(vector_publisher, timeout_sec=0.1)  # Ensure the message is sent immediately
+    rclpy.spin_once(vector_publisher, timeout_sec=0.1)
 
     # [TODO]: Create a subsricber that listens for a confirmation message from the robot after each move
     #       This way we can ensure the robot has completed the move before sending the next command
 
-
-# ── Configuration ──────────────────────────────────────────────────────────────
 marker_size   = 0.02 # Marker size in meters (20 mm)
 camera_matrix = CameraMatrix()
 dist_coeffs   = DistortionCoefficients()
@@ -172,13 +162,10 @@ aruco_dict  = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
 parameters  = cv2.aruco.DetectorParameters()
 detector    = cv2.aruco.ArucoDetector(aruco_dict, parameters)
 
-# ── Open Camera & Capture First Frame ─────────────────────────────────────────
 cap   = init_camera()
 image = capture_frame(cap)
 
-# ── Initial Pose Estimation ────────────────────────────────────────────────────
 corners, ids, rejected = detector.detectMarkers(image)
-# FIXED [TODO]: Loop until we get a valid detection, otherwise we have no reference for alignment
 while len(corners) == 0:
     print("No markers detected, retrying...")
     image = capture_frame(cap)
@@ -187,14 +174,9 @@ rvecs, tvecs = estimatePoseSingleMarkers(corners, marker_size, camera_matrix, di
 
 x, y, z = centroid(tvecs).flatten()
 
-# ── Alignment Loop ─────────────────────────────────────────────────────────────
-# Continuously moves the end-effector and captures a fresh frame after each
-# correction until the centroid falls within tolerance on all axes.
 while not aligned(x, y, z):
     print(f"Aligning... x={x:.4f} m  y={y:.4f} m  z={z:.4f} m")
     move(x, y, z)
-
-    # Pull a new frame from the camera after each movement
     image   = capture_frame(cap)
     corners, ids, rejected = detector.detectMarkers(image)
 
@@ -206,14 +188,8 @@ while not aligned(x, y, z):
     x, y, z = centroid(tvecs).flatten()
 
 print(f"Aligned.    x={x:.4f} m  y={y:.4f} m  z={z:.4f} m")
-
-# ── Final Image Capture ────────────────────────────────────────────────────────
-# Once aligned, take one clean final frame to use for key detection
 final_image = capture_frame(cap)
-release_camera(cap)   # Camera no longer needed after this point
-
-# ── Key Press Sequence ─────────────────────────────────────────────────────────
-# Pass the final aligned image to DistanceData for key detection
+release_camera(cap)
 data = DistanceData(
     input_string=launch_key,
     image=final_image
@@ -224,10 +200,10 @@ for movement in data:
     y = movement["vertical_dist_mm"]   / 1000
     z = 0
 
-    move(x, y, z)       # Translate to next key
+    move(x, y, z)
     move(0, 0, -0.035)  # Press key down 35 mm
     move(0, 0,  0.035)  # Lift back up 35 mm
 
-vector_publisher.destroy_node()  # Clean up ROS2 node
-rclpy.shutdown()                 # Shutdown ROS2 client library 
+vector_publisher.destroy_node()
+rclpy.shutdown()
 print("Typing sequence complete. Shutting down.")

@@ -1,6 +1,6 @@
 import cv2
 
-port = 0  # change this
+port = 0
 
 cap = cv2.VideoCapture(port)
 if not cap.isOpened():

@@ -29,9 +29,6 @@ class MovementVectorSubscriber(Node):
         """
         super().__init__('movement_vector_subscriber')
         
-        # Create a subscriber for Vector3 messages on the 'movement_vector' topic.
-        # The queue size of 10 determines how many incoming messages are buffered 
-        # if the callback function is momentarily busy processing a previous message.
         self.subscription = self.create_subscription(
             Vector3,
             'movement_vector',
@@ -44,9 +41,6 @@ class MovementVectorSubscriber(Node):
             self.completion_callback,
             10
         )
-
-        # Prevent the Python garbage collector from destroying the subscription 
-        # by explicitly referencing it (a standard ROS 2 Python convention).
         self.subscription
 
     def movement_vector_callback(self, msg: Vector3):
@@ -57,7 +51,6 @@ class MovementVectorSubscriber(Node):
             msg (geometry_msgs.msg.Vector3): The incoming movement vector containing 
                                              x, y, and z float components.
         """
-        # Log the received data to the console for monitoring and debugging
         self.get_logger().info(f'Received Vectors -> X: {msg.x:.2f}, Y: {msg.y:.2f}, Z: {msg.z:.2f}')
 
         # -------------------------------------------------------------------
@@ -85,11 +78,11 @@ def main(args=None):
     Initializes ROS 2 communications, creates the subscriber instance, and 
     spins the node indefinitely so it continuously listens for incoming data.
     """
-    rclpy.init(args=args) # Initialize the ROS 2 Python client library
-    movement_vector_subscriber = MovementVectorSubscriber() # Create an instance of the MovementVectorSubscriber node
-    rclpy.spin(movement_vector_subscriber) # Keep the node running to allow it to receive messages
-    movement_vector_subscriber.destroy_node() # Clean up the node when done
-    rclpy.shutdown() # Shutdown the ROS 2 client library
+    rclpy.init(args=args)
+    movement_vector_subscriber = MovementVectorSubscriber()
+    rclpy.spin(movement_vector_subscriber)
+    movement_vector_subscriber.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

@@ -2,11 +2,8 @@ import cv2
 from ultralytics import YOLO
 import math
 
-# ── Constants ──────────────────────────────────────────────────────────────────
 real_key_width_mm = 15.0
 refernce_key_default = "CENTER"
-
-# ── Helper Functions ───────────────────────────────────────────────────────────
 
 def draw_box(image, box, label, conf=-1):
     x1, y1, x2, y2 = map(int, box)
@@ -39,7 +36,6 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
     refernce_key = refernce_key_default
     positions = {}
 
-    # ── Model & Image Setup ────────────────────────────────────────────────────
     model = YOLO(model_path)
 
     if image is None:
@@ -49,7 +45,6 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
 
     pixel_width = None
 
-    # ── Detection Loop ─────────────────────────────────────────────────────────
     for result in results:
         for box in result.boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0])
@@ -68,7 +63,6 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
     if pixel_width is None:
         raise ValueError("Reference key '1' not detected. Cannot compute scale.")
 
-    # ── Estimate 'y' Position ──────────────────────────────────────────────────
     if "y" in target_keys:
         if "t" in positions and "u" in positions:
             tx, ty = get_center(positions["t"])
@@ -87,7 +81,6 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
             positions["y"] = y_box
             draw_box(image, y_box, "y")
 
-    # ── Estimate 'z' Position ──────────────────────────────────────────────────
     if "z" in target_keys:
         if "x" in positions:
             xx, xy = get_center(positions["x"])
@@ -105,14 +98,9 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
             positions["z"] = z_box
             draw_box(image, z_box, "z")
 
-    # ── Display Annotated Image ────────────────────────────────────────────────
     cv2.imshow("Keyboard Detection", image)
-
-    # ── Scale Factor ───────────────────────────────────────────────────────────
     scale_factor = real_key_width_mm / pixel_width
     print(f"Scale factor: {scale_factor:.4f} mm per pixel\n")
-
-    # ── Distance Measurements ──────────────────────────────────────────────────
     height, width, _ = image.shape
     ref_x = width / 2
     ref_y = height / 2
@@ -158,7 +146,7 @@ def DistanceData(input_string, image, model_path=r'best.pt'):
     return distance_data
 
 if __name__ == "__main__":
-    test_path = r'/Users/joshuadayal/Documents/Python/detectron/myvenv/test.jpg'
+    test_path = r'test.jpg'
     image = cv2.imread(test_path)
     data = DistanceData("joshua", image)
     print(data)

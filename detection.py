@@ -4,14 +4,11 @@ from configure import CameraMatrix, DistortionCoefficients
 from distance import DistanceData
 import pythonbible as bible
 
-# ── Startup ────────────────────────────────────────────────────────────────────
-# Print an opening verse (Genesis 1:1) as a launch confirmation message
+
 print(bible.get_verse_text(1001001), "\n")
 
 launch_key = input("Enter the launch key string: ")
 
-
-# ── Pose Estimation ────────────────────────────────────────────────────────────
 
 def estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs):
     """
@@ -36,8 +33,6 @@ def estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs):
     tvecs = []
 
     for corner in corners:
-        # Define the marker's four corners in its own 3D coordinate system.
-        # The marker is centred at the origin and lies flat on the z=0 plane.
         obj_points = np.array([
             [-markerLength / 2,  markerLength / 2, 0],   # Top-left
             [ markerLength / 2,  markerLength / 2, 0],   # Top-right
@@ -45,7 +40,6 @@ def estimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs):
             [-markerLength / 2, -markerLength / 2, 0]    # Bottom-left
         ], dtype=np.float32)
 
-        # Solve for the pose that maps the 3D object points to the 2D image corners
         _, rvec, tvec = cv2.solvePnP(
             obj_points, corner, cameraMatrix, distCoeffs
         )
@@ -105,13 +99,10 @@ def move(x, y, z):
     """
     pass
 
-
-# ── Configuration ──────────────────────────────────────────────────────────────
-marker_size = 0.02          # Real-world ArUco marker side length in meters
+marker_size = 0.02
 camera_matrix = CameraMatrix()
 dist_coeffs = DistortionCoefficients()
 
-# ── ArUco Detection ────────────────────────────────────────────────────────────
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
 parameters = cv2.aruco.DetectorParameters()
 image = cv2.imread(r'/keyboard.jpg')
@@ -119,17 +110,12 @@ image = cv2.imread(r'/keyboard.jpg')
 detector = cv2.aruco.ArucoDetector(aruco_dict, parameters)
 corners, ids, rejected = detector.detectMarkers(image)
 
-# ── Initial Pose & Alignment ───────────────────────────────────────────────────
 rvecs, tvecs = estimatePoseSingleMarkers(corners, marker_size, camera_matrix, dist_coeffs)
-
-# Convert the first marker's rotation vector to a full 3x3 rotation matrix.
-# This is available for future use (e.g. orientation-aware movements) but is
-# not used directly in the current planar x-y motion scheme.
 rotation_matrix, _ = cv2.Rodrigues(rvecs[0])
 
 x, y, z = centroid(tvecs).flatten()
 
-# ── Alignment Loop (disabled) ──────────────────────────────────────────────────
+# Alignment Loop (disabled)
 # Uncomment to enable closed-loop alignment before key pressing begins.
 # The loop continuously moves the end-effector and re-detects markers until
 # the centroid falls within the alignment threshold on all axes.
@@ -140,21 +126,16 @@ x, y, z = centroid(tvecs).flatten()
 #     corners, ids, rejected = detector.detectMarkers(image)
 #     rvecs, tvecs = estimatePoseSingleMarkers(corners, marker_size, camera_matrix, dist_coeffs)
 #     x, y, z = centroid(tvecs).flatten()
-
-# ── Key Press Sequence ─────────────────────────────────────────────────────────
-# Retrieve the chained inter-key distances for every character in the launch key
-# string. Each entry gives the x/y offset from the previous key to the next.
 data = DistanceData(
     input_string=launch_key,
     image=cv2.imread(r'keyboard.jpg')
 )
 
 for movement in data:
-    # Convert millimetres → metres for the robot motion commands
     x = movement["horizontal_dist_mm"] / 1000
     y = movement["vertical_dist_mm"] / 1000
-    z = 0   # All lateral movement happens in the x-y plane; no depth change yet
+    z = 0
 
-    move(x, y, z)       # Translate to the next key position
+    move(x, y, z)
     move(0, 0, -0.035)  # Press down ~35 mm to actuate the key
     move(0, 0,  0.035)  # Lift back up 35 mm to release the key
