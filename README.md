@@ -1,12 +1,10 @@
 # Autonomous Typing System
 
-An intelligent robotic system that autonomously types on a keyboard by detecting keys using computer vision and commanding robot movements to press them in sequence via ROS 2 communication.
+An system that autonomously types on a keyboard by detecting keys using computer vision and commanding robot movements to press them in sequence via ROS 2 communication.
 
-## Project Status
-Work in progress. Estimated Completion: April 2026.
 ## Overview
 
-This project combines multiple computer vision and robotics techniques to enable a robot to type predefined text on a standard keyboard using ROS 2 for communication:
+This project utilizes computer vision to enable a robotic arm to type predefined text on a external keyboard using ROS 2 for communication:
 
 - **ArUco Marker Detection**: Estimates the 3D pose of the robot end-effector using ArUco markers
 - **YOLO-based Key Detection**: Identifies individual keyboard keys using a trained YOLOv8 model
@@ -40,14 +38,14 @@ autonomous_typing/
 ## Components
 
 ### `detection.py`
-**Main orchestration module** that:
+**Main module** that:
 - Loads ArUco marker dictionary and detects markers in images
 - Estimates 3D pose (rotation and translation) of each detected marker
 - Computes centroid of multiple markers for stable reference point
 - Checks alignment tolerance before key pressing
 - Executes movement sequence to type the input string
 
-Key functions:
+Function Summary:
 - `estimatePoseSingleMarkers()`: Solves PnP problem for marker pose estimation
 - `centroid()`: Computes mean position of detected markers
 - `aligned()`: Verifies end-effector alignment with target within tolerance
@@ -60,7 +58,7 @@ Key functions:
 - Measures Euclidean and component distances between consecutive keys
 - Converts pixel distances to real-world measurements using reference key calibration
 
-Key functions:
+Function Summary:
 - `DistanceData()`: Main function returning list of inter-key movements
 - `get_center()`: Computes bounding box center
 - `draw_box()`: Visualizes detections on image
@@ -131,12 +129,6 @@ The project uses a ZED camera (serial: SN30980871). To use with a different came
 The project requires a trained YOLOv8 model for keyboard key detection:
 - Place `best.pt` in the project directory (or update `model_path` in `distance.py`)
 - Model should be trained to detect individual keyboard keys with confidence > 0.5
-
-### 4. Image Paths
-Update image paths in `detection.py` to match your setup:
-```python
-image = cv2.imread(r'/path/to/your/keyboard.jpg')
-```
 
 ## Usage
 
@@ -256,18 +248,6 @@ scale_factor = real_key_width_mm / detected_1_key_width_pixels
 distance_mm = distance_pixels × scale_factor
 ```
 
-## Future Enhancements
-
-- [ ] Real-time video stream processing instead of single image
-- [ ] Multiple camera synchronization for stereo depth
-- [ ] Full 6-DOF trajectory planning with orientation control
-- [ ] Adaptive thresholds based on image quality
-- [ ] Keyboard layout database for missing key interpolation
-- [x] ROS 2 integration for robot control communication
-- [ ] Integration with specific robot APIs (UR, ABB, etc.)
-- [ ] Error recovery and retry mechanisms
-- [ ] Performance benchmarking and optimization
-
 ## Troubleshooting
 
 **Issue: ArUco markers not detected**
@@ -292,14 +272,6 @@ distance_mm = distance_pixels × scale_factor
 - [ZED Camera Calibration](https://www.stereolabs.com/developers/calib/)
 - [OpenCV solvePnP](https://docs.opencv.org/master/d9/d0c/group__calib3d.html#gadb8dca390f603b8d8490514dd5cda33d)
 
-## License
-
-This project is for educational and research purposes.
-
 ## Authors
 
 Joshua Dayal, Mariam Husain, Clara Fang
-
----
-
-**Note**: This is a research/development project. Ensure proper safety measures when operating robotics equipment.
